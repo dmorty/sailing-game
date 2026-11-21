@@ -1,6 +1,10 @@
 # Course files
 
-Each club or harbour area is a folder here holding two files. The game loads them at startup; for now it always loads `rsys/` (a picker comes with issue #3).
+Each club or harbour area is a folder here holding two files. The game loads them at startup.
+
+`index.json` lists the locations for the Club picker on the start card: `{ "locations": [{ "id", "name", "area" }] }`, where `id` is the folder name. A static site can't list folders, so **add every new location here**. The first entry is the default.
+
+The player's pick is saved in `localStorage` (`location`), and switching reloads the page. Setup and best times are saved per location as `<id>Setup` and `<id>Best`.
 
 ## `course.json`
 
@@ -8,6 +12,8 @@ Each club or harbour area is a folder here holding two files. The game loads the
 | --- | --- |
 | `club`, `shortName`, `area`, `series` | Who runs the races, where, and which series the courses come from. |
 | `source` | Where the data came from and how sure it is. |
+| `title`, `blurb`, `credits` | The start card's heading (also the tab title), its intro paragraph and its fine print. |
+| `altFinish` | Optional. An alternative finish the race committee can signal, such as `{ "flag": "O", "finish": "Kirribilli" }`; `finish` is a name from `finishes`. It shows as a checkbox on the start card, and the course's best-time key gets `-<flag>`. |
 | `chart` | The chart file in this folder (land shapes, projection), from `tools/build_harbour.py`. |
 | `boundary` | The chart's edges in GPS degrees: `north`, `south`, `west`, `east`. The chart is 3600 units from north to south, and its width follows from the boundary. |
 | `osmWater` | OpenStreetMap relation ids of enclosed water that the OSM coastline doesn't bound, such as a harbour or bay (Port Jackson is 15522136). Used only by `tools/build_harbour.py`. |

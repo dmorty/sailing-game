@@ -5,6 +5,10 @@
   "series": "2026-2027 Spring & Summer Series",
   "source": "RSYS 2026-2027 Spring & Summer Series Sailing Instructions, clause 7.1 (Saturday courses, Divisions 1-3). Mark positions from the Australian Sailing marks lat/long list (July 2025); marks with \"approx\": true have no published position and are placed from the Appendix 3 descriptions. Start and finish positions are \"in the vicinity of\".",
   "chart": "chart.json",
+  "title": "RSYS Harbour Race",
+  "blurb": "Sail the Royal Sydney Yacht Squadron Saturday courses on Sydney Harbour. Pick your division and the breeze, and the race committee signals the course from the sailing instructions.",
+  "credits": "Unofficial fan game. Courses are from the RSYS 2026-2027 Spring & Summer Series sailing instructions; mark, start and finish positions are approximate.",
+  "altFinish": { "flag": "O", "finish": "Kirribilli" },
   "boundary": {
     "north": -33.79,
     "south": -33.875,

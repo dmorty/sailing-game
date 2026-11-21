@@ -17,13 +17,13 @@ export function courseMarks(marks) {
     return { code: m.mark, port: m.rounding === 'port', short: !!m.shortened };
   });
 }
-export function buildCourse({ division, wind, shortened, kirribilli }) {
+export function buildCourse({ division, wind, shortened, altFinish }) {
   const w = RS.winds.find(x => x.name === wind) || RS.winds[0];
   if (!RS.divisions[division]) division = Object.keys(RS.divisions)[0];
   const def = RS.divisions[division][w.course];
   let list = courseMarks(def.marks);
   if (shortened) list = list.slice(0, list.findIndex(m => m.short) + 1); // flag S: finish after the * mark
-  const finishName = kirribilli ? 'Kirribilli' : def.finish;             // flag O: Kirribilli finish
+  const finishName = altFinish && RS.altFinish ? RS.altFinish.finish : def.finish; // e.g. flag O: Kirribilli finish
   const wb = w.bearing * DEG, up = { x: Math.sin(wb), y: -Math.cos(wb) }; // up: unit vector pointing upwind
   const s = toXY(RS.starts[def.start]), f = toXY(RS.finishes[finishName]);
   const legs = list.map(m => ({ ...m, ...markAt(m.code) }));
@@ -74,7 +74,7 @@ export function buildCourse({ division, wind, shortened, kirribilli }) {
   const modified = shortened || finishName !== def.finish;
   const charted = pts.slice(1).reduce((d, p, i) => d + Math.hypot(p.x - pts[i].x, p.y - pts[i].y), 0) * MAP.mPerUnit / 1852;
   return {
-    key: `${division}-${w.name}${shortened ? '-S' : ''}${finishName !== def.finish ? '-O' : ''}`,
+    key: `${division}-${w.name}${shortened ? '-S' : ''}${finishName !== def.finish ? '-' + RS.altFinish.flag : ''}`,
     division, num: w.course, wind: w, windBase: wb, list, objs, pts, shortened, modified,
     startName: def.start, finishName, nm: modified ? charted : def.nm, codes: new Set(list.map(m => m.code)), startBoat, finishBoat,
     spawn: { x: s.x - up.x * back, y: s.y - up.y * back, h: norm(wb - 50 * DEG) }, // behind the line, close-hauled on starboard tack

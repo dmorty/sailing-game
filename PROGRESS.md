@@ -12,6 +12,38 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #3 Add a club/location picker to the start screen
+
+- **Branch:** `3-location-picker`
+- **What changed:**
+  - **New `courses/index.json`** lists the locations (`id`, `name`, `area`). A static site can't list folders, so every new location must be added here. `courses/README.md` says so.
+  - **Start card:** a full-width **Club** select at the top lists every location.
+    - Picking one saves it (`localStorage` `location`) and reloads the page, which loads that location's course file and chart. A reload is the simplest correct switch, because the land mask, soundings, start-boat route grid and course marks are all built once at startup.
+    - An unknown or missing pick falls back to the first location.
+  - **Saved per location:** setup and best times are stored as `<id>Setup` and `<id>Best`. For RSYS these are still `rsysSetup` and `rsysBest`, so existing saved setups and best times carry over.
+  - **RSYS-specific text moved into `course.json`:**
+    - `title`: the card heading and the tab title;
+    - `blurb` and `credits`: the card text and fine print;
+    - `altFinish` `{ flag: "O", finish: "Kirribilli" }`, which replaces the hard-coded Kirribilli finish. The checkbox (now `#altfinish`) is labelled from it and hidden for locations without one. Course keys still end in `-O`, so best times are unchanged.
+    - A saved setup's old `kirribilli` field is read as `altFinish`.
+  - `index.html` holds neutral placeholders ("Harbour Race") until the course file loads.
+- **Testing:**
+  - `race_test.py` has a new location test. Playwright routes serve a second location, `test`: the RSYS chart and courses under another club name and title, with SW as the default wind and no alternative finish. The test checks that:
+    - the picker lists both locations;
+    - picking `test` loads its course file and chart, its title, and its default wind, and hides the flag O option;
+    - a best time goes to `testBest` and leaves `rsysBest` alone;
+    - the pick survives a reload;
+    - switching back brings RSYS with its flag O finish, setup and best times.
+  - All checks pass, with no console errors.
+  - `compare_versions.py`: 0 of 156 snapshots differ from `master`. It now finds the flag O checkbox under either id.
+  - `check_courses.py`: 0 problems.
+  - Screenshots of the start card at desktop and phone sizes look right.
+- **To review:**
+  - With only RSYS listed, the picker has one option. It's shown anyway, so the feature is visible. It could be hidden until there's a second location.
+  - The page `<title>` and heading show "Harbour Race" for a moment before the course file loads.
+  - `check_courses.py` doesn't check `index.json` against the folders yet. That fits #5, generalising it to any course file.
+- **Next steps:** #4, the ingestion workflow from an inbox folder.
+
 ## 2026-11-22 — #2 Make build_harbour.py take its map boundary from a course file
 
 - **Branch:** `2-chart-from-course-file`
