@@ -1,0 +1,3 @@
+# Source documents for ingestion stay local: see inbox/README.md
+/inbox/*
+!/inbox/README.md

@@ -58,6 +58,8 @@ Courses are data, not code. Each sailing club or harbour area gets its own cours
 
 ### Ingestion workflow (agent task)
 
+Follow the step-by-step playbook in [`inbox/README.md`](inbox/README.md). Source documents in `inbox/` aren't committed.
+
 1. A new source document goes into an inbox folder, such as a club's sailing instructions or a list of marks with coordinates.
 2. The agent extracts the marks, positions and course order, and writes a new course file.
 3. The agent fetches the coastline for that area and saves it with the course.
