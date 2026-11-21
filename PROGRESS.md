@@ -12,6 +12,27 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #2 Make build_harbour.py take its map boundary from a course file
+
+- **Branch:** `2-chart-from-course-file`
+- **What changed:**
+  - `tools/build_harbour.py` now takes a course file: `tools/build_harbour.py courses/rsys/course.json`. It writes the chart to the file named by the course's `chart` field, in the same folder.
+  - The three Sydney-specific things it had hard-coded now come from the course file:
+    - the map box (`LON0`, `LAT_TOP`, `LAT_BOT`), now read from `boundary`;
+    - the place labels, now in a new `labels` field;
+    - the Port Jackson OSM relation, now in a new `osmWater` list. The tool needs this because natural=coastline doesn't bound the harbour.
+  - **Projection:** the world is still 3600 units from north to south. Its width now follows from the boundary's `east`, rather than always being square. For RSYS it's still 3600 × 3600.
+  - **Cache:** the Overpass cache file for a relation is now `water_<id>.json`, replacing `port_jackson.json`.
+  - `courses/README.md` documents the two new fields and the build command, and `CLAUDE.md` gives the build command.
+- **Testing:**
+  - I ran `master`'s tool and the new one on the same downloaded OSM data. They produced byte-identical charts.
+  - The game is unchanged: `compare_versions.py` shows 0 of 156 snapshots differ, `race_test.py` passes, and `check_courses.py` reports 0 problems.
+- **To review:**
+  - **OSM has changed since the committed chart was built.** A fresh build today differs by about 5,200 m² of land (0.01%): about 4,600 m² near Vaucluse (x2594 y2664) and about 490 m² near Kirribilli (x715 y2500).
+    - I kept the committed `chart.json`, so the game doesn't change here. Rebuild it as a separate change if you want the newer coastline.
+  - The tool keeps its old name (`build_harbour.py`), although it now builds any location's chart.
+- **Next steps:** #3, a club/location picker on the start screen.
+
 ## 2026-11-21 — #1 Convert the RSYS data into the per-location course file format
 
 - **Branch:** `1-course-file-format`
