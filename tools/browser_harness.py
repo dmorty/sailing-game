@@ -62,6 +62,8 @@ def open_game(browser, base_url, init_scripts=(FAKE_CLOCK,), log=None):
 
 def wait_ready(page):
     page.wait_for_function('typeof window.__step === "function"')
+    # the game loads its course file before building the first course; wait for that where the game has one
+    page.wait_for_function("""import('./js/game.js').then(({ game }) => !!game.course)""")
     page.wait_for_timeout(300)  # let the game scripts run their first frame request
 
 

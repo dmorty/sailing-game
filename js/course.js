@@ -1,27 +1,27 @@
-// RSYS course sheet (rsys-courses.js): marks projected onto the chart, and a generator that turns a sheet line into a course
+// The location's courses (course.json): marks projected onto the chart, and a generator that turns a course into objectives
 import { DEG, norm, unit } from './util.js';
-import { MAP, isLand, toXY, reach } from './chart.js';
+import { LOC, MAP, isLand, toXY, reach } from './chart.js';
 
-export const RS = window.RSYS;
+export const RS = LOC;
 export const MARKS = Object.entries(RS.marks).map(([code, m]) => ({ code, name: m.name, ...toXY(m) }));
 const markAt = code => MARKS.find(m => m.code === code);
 for (const m of MARKS) if (isLand(m.x, m.y)) console.warn(`Mark ${m.code} is charted on land`);
 const LINE = 70, GATE = 160; // half-length of the start/finish lines; length of a mark's rounding gate (world units)
 const START_BOAT_GAP = 22;  // from the end of the start or finish line to the start boat's centre
 
-// "DB(P) – *KP(P) - SM" → marks in order; (P) = leave to port (otherwise starboard), * = shortened-course mark
-export function parseMarks(line) {
-  return line.split(/\s*[–—-]\s*/).map(tok => {
-    const m = /^(\*?)\s*([A-Z][A-Z0-9]*)\s*(\(P\))?\)?$/.exec(tok.trim());
-    if (!m || !markAt(m[2])) throw new Error(`Unknown mark "${tok}" in "${line}"`);
-    return { code: m[2], port: !!m[3], short: !!m[1] };
+// A course's marks in order: { mark, rounding: 'port' | 'starboard', shortened } → { code, port, short }
+export function courseMarks(marks) {
+  return marks.map(m => {
+    if (!markAt(m.mark)) throw new Error(`Unknown mark "${m.mark}"`);
+    if (m.rounding !== 'port' && m.rounding !== 'starboard') throw new Error(`Mark ${m.mark}: rounding must be port or starboard`);
+    return { code: m.mark, port: m.rounding === 'port', short: !!m.shortened };
   });
 }
 export function buildCourse({ division, wind, shortened, kirribilli }) {
   const w = RS.winds.find(x => x.name === wind) || RS.winds[0];
   if (!RS.divisions[division]) division = Object.keys(RS.divisions)[0];
   const def = RS.divisions[division][w.course];
-  let list = parseMarks(def.marks);
+  let list = courseMarks(def.marks);
   if (shortened) list = list.slice(0, list.findIndex(m => m.short) + 1); // flag S: finish after the * mark
   const finishName = kirribilli ? 'Kirribilli' : def.finish;             // flag O: Kirribilli finish
   const wb = w.bearing * DEG, up = { x: Math.sin(wb), y: -Math.cos(wb) }; // up: unit vector pointing upwind
