@@ -1,6 +1,6 @@
-"""Sanity-check rsys-courses.js against the chart in harbour-data.js.
+"""Sanity-check the RSYS course file (courses/rsys/course.json) against its chart.
 
-For every division and course: the mark line parses to known marks with one * mark,
+For every division and course: every mark is a known mark with a port or starboard rounding and one is the shortened-course mark,
 every mark and start/finish position is in open water, and the straight-line course
 length is compared with the distance printed on the course sheet.
 
@@ -10,31 +10,30 @@ Run from anywhere (standard library only):
 import json
 import math
 import pathlib
-import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TOLERANCE = 0.20  # allowed difference; the sheet distances are approximate and not fully consistent with each other
 
 
-def load(name):
-    text = (ROOT / name).read_text()
-    return json.loads(text[text.index("{", text.index("window.")):text.rindex("}") + 1])
+def load(path):
+    return json.loads(path.read_text())
 
 
-def parse(line):
-    """'DB(P) – *KP(P) - SM' -> [{'code': 'DB', 'port': True, 'short': False}, ...]"""
+def parse(marks):
+    """[{'mark': 'DB', 'rounding': 'port'}, ...] -> [{'code': 'DB', 'port': True, 'short': False}, ...]"""
     out = []
-    for tok in re.split(r"\s*[–—-]\s*", line.strip()):
-        m = re.fullmatch(r"(\*?)\s*([A-Z][A-Z0-9]*)\s*(\(P\))?\)?", tok.strip())
-        if not m:
-            raise ValueError(f"cannot read mark {tok!r} in {line!r}")
-        out.append({"code": m.group(2), "port": bool(m.group(3)), "short": bool(m.group(1))})
+    for m in marks:
+        if m.get("rounding") not in ("port", "starboard"):
+            raise ValueError(f"mark {m.get('mark')!r}: rounding must be port or starboard")
+        out.append({"code": m["mark"], "port": m["rounding"] == "port", "short": bool(m.get("shortened"))})
     return out
 
 
 def main():
-    chart, rsys = load("harbour-data.js"), load("rsys-courses.js")
+    location = ROOT / "courses" / "rsys"
+    rsys = load(location / "course.json")
+    chart = load(location / rsys["chart"])
     m_per_unit = chart["mPerUnit"]
 
     def xy(p):

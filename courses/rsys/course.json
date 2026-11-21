@@ -1,0 +1,384 @@
+{
+  "club": "Royal Sydney Yacht Squadron",
+  "shortName": "RSYS",
+  "area": "Sydney Harbour",
+  "series": "2026-2027 Spring & Summer Series",
+  "source": "RSYS 2026-2027 Spring & Summer Series Sailing Instructions, clause 7.1 (Saturday courses, Divisions 1-3). Mark positions from the Australian Sailing marks lat/long list (July 2025); marks with \"approx\": true have no published position and are placed from the Appendix 3 descriptions. Start and finish positions are \"in the vicinity of\".",
+  "chart": "chart.json",
+  "boundary": {
+    "north": -33.79,
+    "south": -33.875,
+    "west": 151.2,
+    "east": 151.301641
+  },
+  "wind": {
+    "default": "NE",
+    "strength": 14
+  },
+  "marks": {
+    "MW": { "name": "Manly West", "lat": -33.80288, "lon": 151.27698 },
+    "ME": { "name": "Manly East", "lat": -33.80322, "lon": 151.27885 },
+    "CP": { "name": "Cannae Point", "lat": -33.81365, "lon": 151.28258 },
+    "LB": { "name": "Lady Bay", "lat": -33.8346, "lon": 151.277 },
+    "BB": { "name": "Beashel Buoy", "lat": -33.83887, "lon": 151.26975 },
+    "EC": { "name": "Eastern Channel", "lat": -33.84065, "lon": 151.27082 },
+    "NP": { "name": "Nielsen Park", "lat": -33.84843, "lon": 151.26585 },
+    "SM": { "name": "Shark Mark", "lat": -33.86015, "lon": 151.25953 },
+    "RB": { "name": "Rose Bay East", "lat": -33.86237, "lon": 151.2663 },
+    "PP": { "name": "Point Piper", "lat": -33.86263, "lon": 151.25128 },
+    "TB": { "name": "Taylors Bay", "lat": -33.8483, "lon": 151.2487 },
+    "CBS": { "name": "Chowder Bay South", "lat": -33.84222, "lon": 151.25572 },
+    "CBN": { "name": "Chowder Bay North", "lat": -33.83905, "lon": 151.26022 },
+    "OB": { "name": "Obelisk Bay", "lat": -33.83075, "lon": 151.26635 },
+    "KP": { "name": "Kirribilli Point", "lat": -33.8515, "lon": 151.2247, "approx": true },
+    "DM": { "name": "Darling Point", "lat": -33.8602, "lon": 151.238, "approx": true },
+    "N2": { "name": "Naval Buoy No. 2", "lat": -33.8606, "lon": 151.2387, "approx": true },
+    "N3": { "name": "Naval Buoy No. 3", "lat": -33.8602, "lon": 151.2412, "approx": true },
+    "DB": { "name": "Double Bay", "lat": -33.8635, "lon": 151.2466, "approx": true },
+    "RM": { "name": "Rose Bay", "lat": -33.8622, "lon": 151.2621, "approx": true }
+  },
+  "starts": {
+    "Clarke Island": { "lat": -33.859, "lon": 151.2425 },
+    "Kirribilli": { "lat": -33.851, "lon": 151.227 },
+    "Athol Bay": { "lat": -33.854, "lon": 151.242 },
+    "Shark Island": { "lat": -33.8585, "lon": 151.2545 }
+  },
+  "finishes": {
+    "Nielsen Park": { "lat": -33.849, "lon": 151.264 },
+    "Woollahra Point": { "lat": -33.864, "lon": 151.258 },
+    "Point Piper": { "lat": -33.8628, "lon": 151.2528 },
+    "Kirribilli": { "lat": -33.8512, "lon": 151.2262 }
+  },
+  "winds": [
+    { "name": "N", "bearing": 0, "course": 0 },
+    { "name": "NNE", "bearing": 22.5, "course": 0 },
+    { "name": "NE", "bearing": 45, "course": 1 },
+    { "name": "ENE", "bearing": 67.5, "course": 1 },
+    { "name": "E", "bearing": 90, "course": 2 },
+    { "name": "SE", "bearing": 135, "course": 3 },
+    { "name": "S", "bearing": 180, "course": 4 },
+    { "name": "SW", "bearing": 225, "course": 5 },
+    { "name": "W", "bearing": 270, "course": 6 },
+    { "name": "NW", "bearing": 315, "course": 7 }
+  ],
+  "divisions": {
+    "1": [
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "MW", "rounding": "starboard" },
+          { "mark": "ME", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "CP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 16.0
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "CP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "CP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 14.4
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port", "shortened": true },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 12
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "OB", "rounding": "starboard" },
+          { "mark": "RM", "rounding": "starboard" },
+          { "mark": "CBS", "rounding": "starboard" },
+          { "mark": "RM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port", "shortened": true },
+          { "mark": "RM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 15.9
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "MW", "rounding": "starboard" },
+          { "mark": "ME", "rounding": "starboard" },
+          { "mark": "EC", "rounding": "starboard", "shortened": true },
+          { "mark": "MW", "rounding": "starboard" },
+          { "mark": "ME", "rounding": "starboard" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 14.2
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DM", "rounding": "port" },
+          { "mark": "MW", "rounding": "starboard" },
+          { "mark": "ME", "rounding": "starboard" },
+          { "mark": "DM", "rounding": "port" },
+          { "mark": "LB", "rounding": "starboard", "shortened": true },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "LB", "rounding": "starboard" }
+        ],
+        "finish": "Point Piper",
+        "nm": 16
+      },
+      {
+        "start": "Shark Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RM", "rounding": "port" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 13.0
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RM", "rounding": "port" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RM", "rounding": "port" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 13.3
+      }
+    ],
+    "2": [
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "OB", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard", "shortened": true },
+          { "mark": "OB", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 11.3
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "CP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "EC", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 12
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 10.7
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RB", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port", "shortened": true },
+          { "mark": "RB", "rounding": "starboard" },
+          { "mark": "TB", "rounding": "starboard" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 12.1
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "MW", "rounding": "starboard" },
+          { "mark": "ME", "rounding": "starboard", "shortened": true },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "OB", "rounding": "starboard" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 12.1
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DM", "rounding": "port" },
+          { "mark": "EC", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "EC", "rounding": "starboard", "shortened": true },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "EC", "rounding": "starboard" }
+        ],
+        "finish": "Point Piper",
+        "nm": 10.7
+      },
+      {
+        "start": "Shark Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 11.8
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RB", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RB", "rounding": "starboard" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 12.3
+      }
+    ],
+    "3": [
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "BB", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "NP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "BB", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 10.0
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "BB", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "NP", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard", "shortened": true },
+          { "mark": "BB", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" }
+        ],
+        "finish": "Nielsen Park",
+        "nm": 10.0
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "RM", "rounding": "port" },
+          { "mark": "N3", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port", "shortened": true },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "N3", "rounding": "starboard" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 9.4
+      },
+      {
+        "start": "Kirribilli",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "N3", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port", "shortened": true },
+          { "mark": "SM", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 9.0
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DB", "rounding": "port" },
+          { "mark": "OB", "rounding": "starboard" },
+          { "mark": "NP", "rounding": "starboard" },
+          { "mark": "CBS", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard", "shortened": true },
+          { "mark": "OB", "rounding": "starboard" },
+          { "mark": "SM", "rounding": "starboard" }
+        ],
+        "finish": "Woollahra Point",
+        "nm": 10.2
+      },
+      {
+        "start": "Athol Bay",
+        "marks": [
+          { "mark": "DM", "rounding": "port" },
+          { "mark": "BB", "rounding": "starboard" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "NP", "rounding": "starboard", "shortened": true },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "NP", "rounding": "starboard" }
+        ],
+        "finish": "Point Piper",
+        "nm": 9.8
+      },
+      {
+        "start": "Shark Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "PP", "rounding": "starboard" },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "SM", "rounding": "starboard" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 10.2
+      },
+      {
+        "start": "Clarke Island",
+        "marks": [
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RM", "rounding": "port", "shortened": true },
+          { "mark": "KP", "rounding": "port" },
+          { "mark": "RM", "rounding": "port" }
+        ],
+        "finish": "Kirribilli",
+        "nm": 9.0
+      }
+    ]
+  }
+}

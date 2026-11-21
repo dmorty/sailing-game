@@ -12,6 +12,32 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-21 — #1 Convert the RSYS data into the per-location course file format
+
+- **Branch:** `1-course-file-format`
+- **What changed:**
+  - **New `courses/rsys/course.json`** replaces `rsys-courses.js`. It holds the club and area names, the series, a source note, the map boundary in GPS degrees, the default wind (NE) and its strength (14 kn), and the marks, starts, finishes, wind-to-course table and division courses.
+    - Each course's marks are now structured entries, `{ "mark": "KP", "rounding": "port", "shortened": true }`, instead of the sheet's text (`*KP(P)`). The in-game course sheet still shows the sheet notation.
+  - **New `courses/rsys/chart.json`** replaces `harbour-data.js`. It holds the same data as plain JSON, with an attribution field.
+  - **`courses/README.md`** describes the format.
+  - **Game:** `js/chart.js` loads `course.json` and the chart it names with `fetch` and top-level `await`. The `window.RSYS` / `window.HARBOUR` globals and their `<script>` tags are gone.
+    - `js/course.js` reads the structured marks (`courseMarks()` replaces `parseMarks()`).
+    - `js/ui.js` takes the default wind and the HUD's wind strength from the file.
+  - **Tools:**
+    - `check_courses.py` reads the JSON files.
+    - `build_harbour.py` writes `courses/rsys/chart.json`.
+    - `browser_harness.py` waits for the first course to be built, because the game now loads its data asynchronously.
+- **Testing:**
+  - `compare_versions.py` against `master`: 156 snapshots compared, 0 differ, and both consoles are clean.
+  - `race_test.py`: all checks pass. The 2 Point Piper wrong-side skips are as before.
+  - `check_courses.py`: 0 problems, and its output is identical to `master`'s.
+- **To review:**
+  - The mark lines' typos from the sailing instructions (such as `*SM)`) are gone now that marks are structured. The order, sides and shortened marks are unchanged.
+  - The location is fixed to `courses/rsys/` in `js/chart.js` until the picker (#3) exists.
+  - If the course files fail to load, the game shows only the page with no chart. There's no error message on screen; the error goes to the console.
+  - `build_harbour.py` wasn't re-run, because it needs network access. Its output format matches the converted file.
+- **Next steps:** #2, making `build_harbour.py` take its map boundary from the course file.
+
 ## 2026-11-21 — Move the game into its own repo
 
 - **Branch:** `move-to-own-repo`

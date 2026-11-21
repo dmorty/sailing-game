@@ -10,7 +10,7 @@ let toastTimer;
 export function toast(msg) { const el = $('toast'); el.textContent = msg; el.style.opacity = 1; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.style.opacity = 0, 1200); }
 
 // Course picker on the start card
-const setup = Object.assign({ division: '1', wind: 'NE', shortened: false, kirribilli: false }, stored('rsysSetup', {}));
+const setup = Object.assign({ division: '1', wind: RS.wind.default, shortened: false, kirribilli: false }, stored('rsysSetup', {}));
 const bests = stored('rsysBest', {}); // best time per course key
 const rcPick = () => RS.winds[Math.floor(Math.random() * RS.winds.length)].name;
 let rcWind = rcPick(); // the breeze when the wind choice is "Race committee's pick"
@@ -67,7 +67,7 @@ export function updateHud({ twa, eff }) {
   const offDefault = !view.follow || view.zoom !== 1; // Recenter shows whenever the view isn't the default boat-follow at 1×
   if ($('recenter').hidden === offDefault) $('recenter').hidden = !offDefault;
   $('spd').innerHTML = `${(boat.v / 12).toFixed(1)}<small>kn</small>`;
-  $('wind').innerHTML = `${Math.round(game.windStr * 14)}<small>kn</small> ${Math.round(twa)}°`;
+  $('wind').innerHTML = `${Math.round(game.windStr * RS.wind.strength)}<small>kn</small> ${Math.round(twa)}°`;
   $('warrow').style.transform = `rotate(${game.windFrom / DEG}deg)`;
   $('time').textContent = fmt(game.raceT);
   $('next').textContent = game.state === 'racing' ? `${game.objIdx}/${course.objs.length - 1} ${course.objs[game.objIdx].label}` : '—';
