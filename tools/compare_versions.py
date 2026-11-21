@@ -20,6 +20,8 @@ from playwright.sync_api import sync_playwright
 
 from browser_harness import FAKE_CLOCK, SEEDED_RANDOM, launch, open_game, serve, stepper
 
+ALT_FINISH = "#kirribilli, #altfinish"  # the flag O checkbox: its id before and after course files gained locations (#3)
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
 TEXT = ["spd", "wind", "time", "next", "trimstate", "sheet", "toast", "headline", "result", "blurb"]
 
@@ -50,9 +52,9 @@ def session(browser, root):
             for sh in (False, True):
                 page.set_checked("#shortened", sh)
                 for ki in (False, True):
-                    page.set_checked("#kirribilli", ki)
+                    page.set_checked(ALT_FINISH, ki)
                     step(1); snaps.append(snap(page, f"setup div {d} wind {w} S={sh} O={ki}"))
-    page.set_checked("#shortened", False); page.set_checked("#kirribilli", False)
+    page.set_checked("#shortened", False); page.set_checked(ALT_FINISH, False)
     page.select_option("#division", "1"); page.select_option("#windsel", "NE")
 
     # a scripted race: start, sail, steer, trim, auto-trim, zoom, pan, recenter

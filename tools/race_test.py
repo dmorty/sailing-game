@@ -3,11 +3,13 @@
 Instead of steering, the test places the boat just before each objective and lets it sail through:
 the start line, each mark's rounding gate (first the wrong way, which must be refused, then the right way) and
 the finish line. It then checks the finish card, best-time storage, the setup surviving a reload, and that Enter
-starts another race. Fails on any console error or warning.
+starts another race. It also switches to a second location (a copy of RSYS served by the test) and back.
+Fails on any console error or warning.
 
 Run from the repo root:
     uv run --with playwright tools/race_test.py
 """
+import json
 import math
 import pathlib
 import sys
@@ -54,6 +56,56 @@ def gate_crossings(o):
     px, py = mx - n[0] * 25 - o["x"], my - n[1] * 25 - o["y"]
     right = n if ((px * n[1] - py * n[0]) < 0) == o["port"] else (-n[0], -n[1])
     return (mx, my), right, (-right[0], -right[1])
+
+
+def check_locations(page, step):
+    """Serve a second location, "test" (the RSYS chart and courses under another name, with no alternative finish),
+    switch to it and back, and check each keeps its own setup and best times."""
+    rsys = json.loads((REPO / "courses/rsys/course.json").read_text())
+    test = {**rsys, "club": "Test Club", "title": "Test Race", "wind": {**rsys["wind"], "default": "SW"}}
+    del test["altFinish"]
+
+    def index(route):
+        body = route.fetch().json()
+        body["locations"].append({"id": "test", "name": "Test Club", "area": "Testing"})
+        route.fulfill(json=body)
+
+    def files(route):
+        name = route.request.url.rsplit("/", 1)[-1]
+        if name == "course.json":
+            route.fulfill(json=test)
+        else:
+            route.fulfill(path=str(REPO / "courses/rsys" / name))
+    page.route("**/courses/index.json", index)
+    page.route("**/courses/test/*", files)
+    page.reload(); wait_ready(page); step(2)
+    options = page.eval_on_selector_all("#location option", "os => os.map(o => o.value)")
+    check(options == ["rsys", "test"] and page.input_value("#location") == "rsys", f"club picker lists every location {options}")
+    rsys_best = page.evaluate("localStorage.getItem('rsysBest')")
+
+    with page.expect_navigation():
+        page.select_option("#location", "test")
+    wait_ready(page); step(2)
+    loaded = page.evaluate("import('./js/chart.js').then(m => [m.LOC_ID, m.LOC.club, m.MAP.land.length])")
+    check(loaded[:2] == ["test", "Test Club"] and loaded[2] > 0, f"picking a location loads its course file and chart {loaded}")
+    check(page.text_content("#headline") == "Test Race" and page.title() == "Test Race", "  its title shows on the card and the tab")
+    check(page.input_value("#windsel") == "SW", "  its default wind is picked")
+    check(not page.is_visible("#altfinish"), "  no alternative-finish option when the location has none")
+    page.evaluate("""async () => {
+      const { game } = await import('./js/game.js'); const { finish } = await import('./js/ui.js');
+      game.raceT = 123; finish(); }""")
+    best = page.evaluate("[localStorage.getItem('testBest'), localStorage.getItem('rsysBest')]")
+    check(bool(best[0]) and "123" in best[0] and best[1] == rsys_best, "  its best times are kept apart from RSYS's")
+    page.reload(); wait_ready(page); step(2)
+    check(page.input_value("#location") == "test" and page.text_content("#headline") == "Test Race", "  the pick persists after reload")
+
+    with page.expect_navigation():
+        page.select_option("#location", "rsys")
+    wait_ready(page); step(2)
+    check(page.text_content("#headline") == "RSYS Harbour Race" and page.is_visible("#altfinish")
+          and page.text_content("#altlabel") == "Kirribilli finish (flag O)", "switching back loads RSYS, with its flag O finish")
+    check(page.input_value("#division") == RACES[0][0] and "best" in page.text_content("#sheet"),
+          "  RSYS keeps its own setup and best times")
 
 
 def main():
@@ -171,8 +223,8 @@ def main():
           const { isLand } = await import('./js/chart.js');
           const bad = []; let n = 0;
           for (const division of Object.keys(RS.divisions)) for (const w of RS.winds)
-            for (const shortened of [false, true]) for (const kirribilli of [false, true]) {
-              const c = buildCourse({ division, wind: w.name, shortened, kirribilli }), path = findPath(c.startBoat, c.finishBoat); n++;
+            for (const shortened of [false, true]) for (const altFinish of [false, true]) {
+              const c = buildCourse({ division, wind: w.name, shortened, altFinish }), path = findPath(c.startBoat, c.finishBoat); n++;
               let land = !path;
               for (let i = 1; path && i < path.length; i++) {
                 const p = path[i - 1], q = path[i], k = Math.ceil(Math.hypot(q.x - p.x, q.y - p.y) / 5);
@@ -182,6 +234,7 @@ def main():
             }
           return { n, bad }; }""")
         check(not routes["bad"], f"water route from start to finish on all {routes['n']} courses {routes['bad'] or ''}")
+        check_locations(page, step)
         check(not log, f"no console errors or warnings {log or ''}")
         browser.close()
 

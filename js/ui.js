@@ -1,6 +1,7 @@
 // The page around the chart: the HUD, toasts, the course setup card, the finish card and best times.
 import { $, DEG, clamp, fmt, stored, store } from './util.js';
 import { RS, buildCourse, sheetLine } from './course.js';
+import { LOCATIONS, LOC_ID } from './chart.js';
 import { NOGO, optimalSheet } from './boat.js';
 import { game } from './game.js';
 import { view } from './camera.js';
@@ -9,9 +10,11 @@ import { soundOn, setSound } from './sound.js';
 let toastTimer;
 export function toast(msg) { const el = $('toast'); el.textContent = msg; el.style.opacity = 1; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.style.opacity = 0, 1200); }
 
-// Course picker on the start card
-const setup = Object.assign({ division: '1', wind: RS.wind.default, shortened: false, kirribilli: false }, stored('rsysSetup', {}));
-const bests = stored('rsysBest', {}); // best time per course key
+// Course picker on the start card. Setup and best times are saved per location (rsysSetup, rsysBest, ...).
+const SETUP_KEY = `${LOC_ID}Setup`, BEST_KEY = `${LOC_ID}Best`;
+const setup = Object.assign({ division: '1', wind: RS.wind.default, shortened: false, altFinish: false }, stored(SETUP_KEY, {}));
+if ('kirribilli' in setup) { setup.altFinish = setup.kirribilli; delete setup.kirribilli; } // saved before locations existed
+const bests = stored(BEST_KEY, {}); // best time per course key
 const rcPick = () => RS.winds[Math.floor(Math.random() * RS.winds.length)].name;
 let rcWind = rcPick(); // the breeze when the wind choice is "Race committee's pick"
 export const setupCourse = () => buildCourse({ ...setup, wind: setup.wind === 'RC' ? rcWind : setup.wind });
@@ -26,24 +29,32 @@ function renderSheet() {
 }
 function applySetup() {
   game.course = setupCourse();
-  store('rsysSetup', setup);
+  store(SETUP_KEY, setup);
   if (game.state !== 'racing') resetBoat(); // show the new start area behind the card
   renderSheet();
 }
 // Wire up the start card. Call after game.course is built; onReset puts the boat back at the course's start.
 export function initSetup(onReset) {
   resetBoat = onReset;
+  document.title = RS.title;
+  $('headline').textContent = RS.title; $('blurb').textContent = RS.blurb; $('credits').textContent = RS.credits;
+  // Location picker: switching saves the pick and reloads, which loads the new chart and courses
+  $('location').innerHTML = LOCATIONS.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+  $('location').value = LOC_ID;
+  $('location').addEventListener('change', e => { store('location', e.target.value); location.reload(); });
+  $('altfinish').parentElement.hidden = !RS.altFinish;
+  if (RS.altFinish) $('altlabel').textContent = `${RS.altFinish.finish} finish (flag ${RS.altFinish.flag})`;
   $('division').innerHTML = Object.keys(RS.divisions).map(d => `<option value="${d}">Division ${d}</option>`).join('');
   $('windsel').innerHTML = `<option value="RC">Race committee's pick</option>`
     + RS.winds.map(w => `<option value="${w.name}">${w.name} (course ${w.course})</option>`).join('');
   if (!RS.divisions[setup.division]) setup.division = Object.keys(RS.divisions)[0];
   if (setup.wind !== 'RC' && !RS.winds.some(w => w.name === setup.wind)) setup.wind = 'RC';
   $('division').value = setup.division; $('windsel').value = setup.wind;
-  $('shortened').checked = !!setup.shortened; $('kirribilli').checked = !!setup.kirribilli;
+  $('shortened').checked = !!setup.shortened; $('altfinish').checked = !!setup.altFinish;
   $('division').addEventListener('change', e => { setup.division = e.target.value; applySetup(); });
   $('windsel').addEventListener('change', e => { setup.wind = e.target.value; if (setup.wind === 'RC') rcWind = rcPick(); applySetup(); });
   $('shortened').addEventListener('change', e => { setup.shortened = e.target.checked; applySetup(); });
-  $('kirribilli').addEventListener('change', e => { setup.kirribilli = e.target.checked; applySetup(); });
+  $('altfinish').addEventListener('change', e => { setup.altFinish = e.target.checked; applySetup(); });
   $('sound').checked = soundOn();
   $('sound').addEventListener('change', e => setSound(e.target.checked));
   renderSheet();
@@ -52,7 +63,7 @@ export function initSetup(onReset) {
 export function finish() {
   game.state = 'finished';
   const c = game.course, raceT = game.raceT, prev = bests[c.key], rec = !prev || raceT < prev;
-  if (rec) { bests[c.key] = raceT; store('rsysBest', bests); }
+  if (rec) { bests[c.key] = raceT; store(BEST_KEY, bests); }
   $('headline').textContent = rec ? 'New best time' : 'Finished';
   $('result').textContent = fmt(raceT); $('result').hidden = false;
   $('blurb').textContent = `Division ${c.division}, course ${c.num} in a ${c.wind.name} breeze${c.shortened ? ', shortened' : ''}. Best: ${fmt(bests[c.key])}. Tip: upwind, sail at about 60° to the wind and tack as few times as you can.`;
