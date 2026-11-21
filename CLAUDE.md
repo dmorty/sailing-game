@@ -15,7 +15,7 @@ A simple, satisfying 2D sailing game playable in the browser. The player steers 
 - Browser tests use Playwright and run from the repo root:
   - `uv run --with playwright tools/race_test.py` races whole courses: start, rounding each mark (the wrong way is refused), finish, best times, reload.
   - `uv run --with playwright tools/compare_versions.py [REF]` plays the same session against a git ref (default `master`) and the working tree, and reports any difference. Use it for refactors that must not change behaviour.
-- Course data lives in `courses/<location>/`: `course.json` (club, marks, courses, wind) and `chart.json` (land from OpenStreetMap). The format is described in `courses/README.md`.
+- Course data lives in `courses/<location>/`: `course.json` (club, marks, courses, wind) and `chart.json` (land from OpenStreetMap). The format is described in `courses/README.md`. Rebuild a chart from its course file with `uv run --with shapely --with requests tools/build_harbour.py courses/<location>/course.json`.
 - `python3 tools/check_courses.py` checks the RSYS courses against the chart.
 - Works with keyboard on desktop; touch controls are a later goal.
 

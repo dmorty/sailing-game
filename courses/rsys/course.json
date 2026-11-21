@@ -11,6 +11,23 @@
     "west": 151.2,
     "east": 151.301641
   },
+  "osmWater": [15522136],
+  "labels": [
+    { "text": "Harbour Bridge", "lat": -33.8523, "lon": 151.2108, "kind": "land" },
+    { "text": "Opera House", "lat": -33.8572, "lon": 151.2153, "kind": "land" },
+    { "text": "Kirribilli", "lat": -33.847, "lon": 151.217, "kind": "land" },
+    { "text": "Mosman", "lat": -33.829, "lon": 151.244, "kind": "land" },
+    { "text": "Point Piper", "lat": -33.8665, "lon": 151.2525, "kind": "land" },
+    { "text": "Rose Bay", "lat": -33.864, "lon": 151.2665, "kind": "water" },
+    { "text": "Vaucluse", "lat": -33.858, "lon": 151.279, "kind": "land" },
+    { "text": "Watsons Bay", "lat": -33.8455, "lon": 151.284, "kind": "land" },
+    { "text": "South Head", "lat": -33.8355, "lon": 151.287, "kind": "land" },
+    { "text": "North Head", "lat": -33.819, "lon": 151.299, "kind": "land" },
+    { "text": "Manly", "lat": -33.799, "lon": 151.286, "kind": "land" },
+    { "text": "Middle Harbour", "lat": -33.815, "lon": 151.247, "kind": "water" },
+    { "text": "North Harbour", "lat": -33.803, "lon": 151.27, "kind": "water" },
+    { "text": "Port Jackson", "lat": -33.842, "lon": 151.256, "kind": "water" }
+  ],
   "wind": {
     "default": "NE",
     "strength": 14

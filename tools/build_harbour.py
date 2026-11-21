@@ -1,11 +1,13 @@
-"""Build the RSYS chart (courses/rsys/chart.json) from OpenStreetMap data.
+"""Build a location's chart (land shapes and projection) from OpenStreetMap data.
 
-Water = the "Port Jackson" harbour multipolygon (OSM relation 15522136) plus the
-open sea seaward of natural=coastline. Land = everything else in the box.
-Everything is projected into the game's square world (y down, origin top-left).
+Reads the course file for the map boundary, the place labels and the OSM relations of its
+enclosed water (harbours, bays and rivers that natural=coastline doesn't bound). Water = those
+relations plus the open sea seaward of natural=coastline. Land = everything else in the box.
+Everything is projected into the game's world (y down, origin top-left), H units tall, with the
+width set by the boundary. The chart is written to the file named by the course's "chart" field.
 
 Run from the repo root:
-    uv run --with shapely --with requests tools/build_harbour.py
+    uv run --with shapely --with requests tools/build_harbour.py courses/rsys/course.json
 Options:
     --cache DIR       reuse/save the raw Overpass responses in DIR
     --preview FILE    also render a PNG preview (needs: --with matplotlib)
@@ -23,37 +25,27 @@ from shapely.geometry import LineString, box
 from shapely.ops import linemerge, polygonize, unary_union
 
 OVERPASS = "https://overpass-api.de/api/interpreter"
-PORT_JACKSON = 15522136
+H = 3600                          # world height in units; the width follows from the boundary
+KY = 110574.0                     # metres per degree latitude
 
-WORLD = 3600                     # world is WORLD x WORLD units
-LON0, LAT_TOP, LAT_BOT = 151.200, -33.790, -33.875
-KY = 110574.0                    # metres per degree latitude
-KX = math.cos(math.radians((LAT_TOP + LAT_BOT) / 2)) * 111320.0
-M_PER_UNIT = (LAT_TOP - LAT_BOT) * KY / WORLD
-LON1 = LON0 + WORLD * M_PER_UNIT / KX
 
-# Race marks and courses live in courses/rsys/course.json (check them with tools/check_courses.py).
-LABELS = [
-    # (text, lat, lon, kind) — kind "water" is drawn italic
-    ("Harbour Bridge", -33.8523, 151.2108, "land"),
-    ("Opera House", -33.8572, 151.2153, "land"),
-    ("Kirribilli", -33.8470, 151.2170, "land"),
-    ("Mosman", -33.8290, 151.2440, "land"),
-    ("Point Piper", -33.8665, 151.2525, "land"),
-    ("Rose Bay", -33.8640, 151.2665, "water"),
-    ("Vaucluse", -33.8580, 151.2790, "land"),
-    ("Watsons Bay", -33.8455, 151.2840, "land"),
-    ("South Head", -33.8355, 151.2870, "land"),
-    ("North Head", -33.8190, 151.2990, "land"),
-    ("Manly", -33.7990, 151.2860, "land"),
-    ("Middle Harbour", -33.8150, 151.2470, "water"),
-    ("North Harbour", -33.8030, 151.2700, "water"),
-    ("Port Jackson", -33.8420, 151.2560, "water"),
-]
+class Box:
+    """The projection from a course file's boundary: square metres, H units from north to south."""
+
+    def __init__(self, b):
+        self.north, self.south, self.west, self.east = b["north"], b["south"], b["west"], b["east"]
+        if not (self.north > self.south and self.east > self.west):
+            raise SystemExit(f"bad boundary {b}: need north > south and east > west")
+        self.kx = math.cos(math.radians((self.north + self.south) / 2)) * 111320.0  # metres per degree longitude
+        self.m_per_unit = (self.north - self.south) * KY / H
+        self.w = round((self.east - self.west) * self.kx / self.m_per_unit)
+
+
+BOX = None  # set by main() from the course file
 
 
 def proj(lon, lat):
-    return ((lon - LON0) * KX / M_PER_UNIT, (LAT_TOP - lat) * KY / M_PER_UNIT)
+    return ((lon - BOX.west) * BOX.kx / BOX.m_per_unit, (BOX.north - lat) * KY / BOX.m_per_unit)
 
 
 def overpass(query, cache, name):
@@ -80,8 +72,11 @@ def rings_to_polys(lines):
     return list(polygonize(linemerge(lines)))
 
 
-def harbour_water(cache):
-    d = overpass(f"[out:json][timeout:170];rel({PORT_JACKSON});out geom;", cache, "port_jackson.json")
+def relation_water(rel, cache):
+    """An OSM multipolygon relation (such as a harbour) as a water polygon: its outer rings minus its inner ones."""
+    d = overpass(f"[out:json][timeout:170];rel({rel});out geom;", cache, f"water_{rel}.json")
+    if not d["elements"]:
+        raise SystemExit(f"OSM relation {rel} not found")
     members = d["elements"][0]["members"]
     outer = [way_line(m["geometry"]) for m in members if m["type"] == "way" and m["role"] == "outer"]
     inner = [way_line(m["geometry"]) for m in members if m["type"] == "way" and m["role"] == "inner"]
@@ -92,7 +87,7 @@ def sea_water(cache, world):
     """Faces of the box cut by the coastline that lie on the sea side (coastline ways have land on their left)."""
     pad = 0.01
     q = (f'[out:json][timeout:170];way["natural"="coastline"]'
-         f'({LAT_BOT - pad},{LON0 - pad},{LAT_TOP + pad},{LON1 + pad});out geom;')
+         f'({BOX.south - pad},{BOX.west - pad},{BOX.north + pad},{BOX.east + pad});out geom;')
     ways = [way_line(w["geometry"]) for w in overpass(q, cache, "coastline.json")["elements"]]
     segs = [(a, b) for w in ways for a, b in zip(w.coords, w.coords[1:])]
     noded = unary_union([w.intersection(world) for w in ways] + [world.exterior])
@@ -112,15 +107,20 @@ def ring_coords(ring):
 
 
 def main():
+    global BOX
     ap = argparse.ArgumentParser()
+    ap.add_argument("course", type=pathlib.Path, help="the location's course.json")
     ap.add_argument("--cache", type=pathlib.Path)
     ap.add_argument("--preview", type=pathlib.Path)
     args = ap.parse_args()
     if args.cache:
         args.cache.mkdir(parents=True, exist_ok=True)
+    course = json.loads(args.course.read_text())
+    BOX = Box(course["boundary"])
 
-    world = box(0, 0, WORLD, WORLD)
-    water = unary_union([harbour_water(args.cache).buffer(0.5), sea_water(args.cache, world).buffer(0.5)])
+    world = box(0, 0, BOX.w, H)
+    water = unary_union([relation_water(r, args.cache).buffer(0.5) for r in course.get("osmWater", [])]
+                        + [sea_water(args.cache, world).buffer(0.5)])
     land = world.difference(water).simplify(1.5)
     polys = [g for g in getattr(land, "geoms", [land]) if g.area > 30]
     land = unary_union(polys)
@@ -130,21 +130,22 @@ def main():
         rings.append(ring_coords(g.exterior))
         rings += [ring_coords(h) for h in g.interiors]
 
-    labels = [{"text": t, "x": round(proj(lon, lat)[0]), "y": round(proj(lon, lat)[1]), "kind": k}
-              for t, lat, lon, k in LABELS]
+    labels = [{"text": lab["text"], "x": round(proj(lab["lon"], lab["lat"])[0]),
+               "y": round(proj(lab["lon"], lab["lat"])[1]), "kind": lab.get("kind", "land")}
+              for lab in course.get("labels", [])]
 
     data = {
         "attribution": "Generated by tools/build_harbour.py. Map data © OpenStreetMap contributors, ODbL.",
-        "W": WORLD, "H": WORLD, "mPerUnit": round(M_PER_UNIT, 4),
-        "lon0": LON0, "latTop": LAT_TOP,
-        "lonPerUnit": M_PER_UNIT / KX, "latPerUnit": M_PER_UNIT / KY,
+        "W": BOX.w, "H": H, "mPerUnit": round(BOX.m_per_unit, 4),
+        "lon0": BOX.west, "latTop": BOX.north,
+        "lonPerUnit": BOX.m_per_unit / BOX.kx, "latPerUnit": BOX.m_per_unit / KY,
         "labels": labels, "land": rings,
     }
-    out = pathlib.Path(__file__).resolve().parent.parent / "courses" / "rsys" / "chart.json"
+    out = args.course.parent / course["chart"]
     out.write_text(json.dumps(data, separators=(",", ":"), ensure_ascii=False) + "\n")
     pts = sum(len(r) // 2 for r in rings)
     print(f"{out.name}: {out.stat().st_size / 1024:.0f} KB, {len(rings)} rings, {pts} points, "
-          f"{land.area / world.area:.0%} land, {M_PER_UNIT:.2f} m/unit, lon {LON0}..{LON1:.4f}")
+          f"{land.area / world.area:.0%} land, {BOX.w}x{H} units, {BOX.m_per_unit:.2f} m/unit")
 
     if args.preview:
         import matplotlib
@@ -159,7 +160,7 @@ def main():
             ax.text(lab["x"], lab["y"], lab["text"], fontsize=7, color="#555",
                     style="italic" if lab["kind"] == "water" else "normal")
         ax.set_facecolor("#c4dfe0")
-        ax.set_xlim(0, WORLD); ax.set_ylim(WORLD, 0); ax.set_aspect(1)
+        ax.set_xlim(0, BOX.w); ax.set_ylim(H, 0); ax.set_aspect(1)
         fig.savefig(args.preview, dpi=90, bbox_inches="tight")
 
 
