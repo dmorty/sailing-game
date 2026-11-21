@@ -1,5 +1,7 @@
 # Sailing game
 
+The RSYS Harbour Race, played at https://dmorty.github.io/sailing-game/ (GitHub Pages, served from the root of `master`).
+
 ## Vision
 
 A simple, satisfying 2D sailing game playable in the browser. The player steers a small sailboat around a course of buoys in a harbour, racing the clock. Sailing should feel believable: the boat's speed depends on its angle to the wind, and it cannot sail directly into the wind (it must tack).
@@ -7,32 +9,31 @@ A simple, satisfying 2D sailing game playable in the browser. The player steers 
 ## Tech choices
 
 - Plain HTML, CSS and JavaScript using the Canvas API. No build step and no frameworks unless clearly justified.
-- Everything must run as static files so it deploys to GitHub Pages.
+- Everything must run as static files so it deploys to GitHub Pages. `.nojekyll` makes Pages serve the files as they are.
 - Keep code split into ES modules by concern (chart, course, boat, wind, camera, input, rendering, UI). Don't create tiny files: a module should own one clear job.
-- Modules don't load from `file://`. Test through a local server: `python3 -m http.server` from the repo root, then open `/sailing/`.
+- Modules don't load from `file://`. Test through a local server: `python3 -m http.server` from the repo root, then open http://localhost:8000/.
 - Browser tests use Playwright and run from the repo root:
-  - `uv run --with playwright sailing/tools/race_test.py` races whole courses: start, rounding each mark (the wrong way is refused), finish, best times, reload.
-  - `uv run --with playwright sailing/tools/compare_versions.py [REF]` plays the same session against a git ref (default `master`) and the working tree, and reports any difference. Use it for refactors that must not change behaviour.
+  - `uv run --with playwright tools/race_test.py` races whole courses: start, rounding each mark (the wrong way is refused), finish, best times, reload.
+  - `uv run --with playwright tools/compare_versions.py [REF]` plays the same session against a git ref (default `master`) and the working tree, and reports any difference. Use it for refactors that must not change behaviour.
+- `python3 tools/check_courses.py` checks the RSYS courses against the chart.
 - Works with keyboard on desktop; touch controls are a later goal.
+
+## Tasks: GitHub Issues
+
+Tasks are tracked as [GitHub Issues](https://github.com/dmorty/sailing-game/issues) (`gh issue list --label ready`):
+
+- `ready`: ready for the agent to pick up.
+- `needs-input`: blocked on a question for the owner.
 
 ## How to work (rules for the agent)
 
-1. Each run, pick the top unchecked task from the [To-do list](#to-do-list) below. Do only that one task.
-2. Work on a new git branch named after the task. Never commit directly to master.
-3. Keep changes small and focused. If a task is too big, split it into smaller tasks in the To-do list and do the first one.
+1. Each run, pick the lowest-numbered open issue labelled `ready`. Do only that one issue.
+2. Work on a new git branch named `<issue number>-<short-name>`, such as `3-location-picker`. Never commit directly to master. Mention the issue in commit messages, with `Fixes #<number>` on the commit that completes it.
+3. Keep changes small and focused. If an issue is too big, split it into smaller new issues labelled `ready`, link them from the original issue, and do the first one.
 4. After finishing, make sure the game still loads in a browser with no console errors.
-5. Write a short entry in `PROGRESS.md`: date, task, what changed, anything to review, and suggested next steps.
-6. Do not add new dependencies, delete files outside the project, or change deployment settings without noting it clearly in `PROGRESS.md` for review.
-7. If blocked or unsure, write the question in `PROGRESS.md` and stop.
-
-## To-do list
-
-- [x] Split `index.html` into ES modules, with no change in behaviour
-- [x] Add leeway, so the boat drifts sideways a little, especially when slow or close-hauled
-- [x] Add simple sound effects
-- [x] Add a start boat to one end of the start line
-- [x] Once the race has started make the start boat make its way to the finish line and replace one of the pins.
-- [x] Link to the game from the site's home page (`index.md`)
+5. Comment a short summary on the issue: what changed, anything to review, and suggested next steps. Also add an entry to `PROGRESS.md`, the running work log: date, issue, what changed, anything to review, and next steps.
+6. Do not add new dependencies, delete files outside the project, or change deployment settings without noting it clearly on the issue for review.
+7. If blocked or unsure, comment the question on the issue, replace its `ready` label with `needs-input`, and stop.
 
 ## Later: multiple clubs, maps and courses
 
@@ -62,16 +63,9 @@ Courses are data, not code. Each sailing club or harbour area gets its own cours
 4. The agent validates the course: every mark is on water, the course is sailable, and the game loads it with no errors.
 5. The agent logs the new course in `PROGRESS.md`, noting anything uncertain for review, and moves the source document to a processed folder.
 
-### Later to-do list
-
-- [ ] Convert the RSYS data (`rsys-courses.js` and `harbour-data.js`) into the per-location course file format and load it from there
-- [ ] Make `tools/build_harbour.py` take its map boundary from a course file instead of hard-coded Sydney Harbour coordinates
-- [ ] Add a club/location picker to the start screen (it currently picks only RSYS division and wind)
-- [ ] Build the ingestion workflow from an inbox folder
-- [ ] Generalise `tools/check_courses.py` so it validates any course file
-
 ## Definition of done for each task
 
 - The game runs from `index.html` with no errors.
 - The change is visible or testable by playing.
-- `PROGRESS.md` is updated.
+- The issue has a summary comment, and `PROGRESS.md` is updated.
+- The issue is closed by the merge (`Fixes #<number>`).

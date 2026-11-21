@@ -1,16 +1,39 @@
 # Progress log
 
-One entry per task, newest first. See the rules in [CLAUDE.md](CLAUDE.md).
+One entry per issue or task, newest first. Tasks are GitHub Issues; see the rules in [CLAUDE.md](CLAUDE.md).
 
 <!--
-## YYYY-MM-DD — Task name
+## YYYY-MM-DD — #N Issue title
 
-- **Branch:** `branch-name`
+- **Branch:** `N-short-name`
 - **What changed:**
 - **To review:**
 - **Next steps:**
-- **Questions:** (if blocked or unsure)
+- **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
+
+## 2026-11-21 — Move the game into its own repo
+
+- **Branch:** `move-to-own-repo`
+- **What changed:**
+  - The game moved from `sailing/` in `dmorty/dmorty.github.io` to its own public repo, `dmorty/sailing-game`, with its history kept.
+    - The 17 commits that touched `sailing/` were replayed with `sailing/` as the root, using `git subtree split`. Authors, dates and messages are unchanged, but commit hashes are new.
+    - It's served by GitHub Pages from the root of `master` at https://dmorty.github.io/sailing-game/. That's the same origin as before, so saved setup, best times and the sound setting carry over.
+  - **Paths fixed for the repo root:**
+    - The tools' docstrings and run commands drop `sailing/`.
+    - `race_test.py` and `compare_versions.py` find the repo one level up.
+    - `browser_harness.py` opens the site root.
+    - `compare_versions.py` archives the whole tree of the ref.
+    - The game itself needed no changes, because it only uses relative paths.
+  - Added `.nojekyll`, so Pages serves the files as they are.
+  - **Tasks moved to GitHub Issues:**
+    - New labels `ready` and `needs-input`.
+    - Issues #1-#5 were created from the remaining "Later to-do list" items, all labelled `ready`.
+    - `CLAUDE.md` now says to pick the lowest-numbered `ready` issue, branch as `N-short-name`, comment on the issue, and label it `needs-input` when blocked.
+- **To review:**
+  - The old copy still lives in `sailing/` of the main site repo, and `https://dmorty.github.io/sailing/` still works. Remove it once the new site is confirmed working.
+  - The RSYS sailing instructions PDF was untracked and wasn't moved into this public repo.
+- **Next steps:** #1, converting the RSYS data into the per-location course file format.
 
 ## 2026-11-21 — Auto-trim on by default
 

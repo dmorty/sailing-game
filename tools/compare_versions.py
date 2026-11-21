@@ -8,7 +8,7 @@ steering, trimming, auto-trim, zoom, pan and recenter. Time and Math.random are 
 Only useful for changes meant to keep behaviour the same: any gameplay change shows up as differences.
 
 Run from the repo root:
-    uv run --with playwright sailing/tools/compare_versions.py [REF]
+    uv run --with playwright tools/compare_versions.py [REF]
 """
 import hashlib
 import pathlib
@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright
 
 from browser_harness import FAKE_CLOCK, SEEDED_RANDOM, launch, open_game, serve, stepper
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
+REPO = pathlib.Path(__file__).resolve().parents[1]
 TEXT = ["spd", "wind", "time", "next", "trimstate", "sheet", "toast", "headline", "result", "blurb"]
 
 
@@ -81,7 +81,7 @@ def session(browser, root):
 def main():
     ref = sys.argv[1] if len(sys.argv) > 1 else "master"
     with tempfile.TemporaryDirectory() as old_root, sync_playwright() as p:
-        archive = subprocess.run(["git", "-C", str(REPO), "archive", ref, "sailing"], check=True, capture_output=True).stdout
+        archive = subprocess.run(["git", "-C", str(REPO), "archive", ref], check=True, capture_output=True).stdout
         subprocess.run(["tar", "-x", "-C", old_root], input=archive, check=True)
         browser = launch(p)
         (old_log, old), (new_log, new) = session(browser, old_root), session(browser, REPO)

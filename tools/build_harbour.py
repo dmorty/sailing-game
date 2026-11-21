@@ -1,11 +1,11 @@
-"""Build sailing/harbour-data.js from OpenStreetMap data.
+"""Build harbour-data.js from OpenStreetMap data.
 
 Water = the "Port Jackson" harbour multipolygon (OSM relation 15522136) plus the
 open sea seaward of natural=coastline. Land = everything else in the box.
 Everything is projected into the game's square world (y down, origin top-left).
 
 Run from the repo root:
-    uv run --with shapely --with requests sailing/tools/build_harbour.py
+    uv run --with shapely --with requests tools/build_harbour.py
 Options:
     --cache DIR       reuse/save the raw Overpass responses in DIR
     --preview FILE    also render a PNG preview (needs: --with matplotlib)
@@ -32,7 +32,7 @@ KX = math.cos(math.radians((LAT_TOP + LAT_BOT) / 2)) * 111320.0
 M_PER_UNIT = (LAT_TOP - LAT_BOT) * KY / WORLD
 LON1 = LON0 + WORLD * M_PER_UNIT / KX
 
-# Race marks and courses live in sailing/rsys-courses.js (check them with tools/check_courses.py).
+# Race marks and courses live in rsys-courses.js (check them with tools/check_courses.py).
 LABELS = [
     # (text, lat, lon, kind) — kind "water" is drawn italic
     ("Harbour Bridge", -33.8523, 151.2108, "land"),

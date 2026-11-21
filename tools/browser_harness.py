@@ -47,7 +47,7 @@ def launch(p):
 
 
 def open_game(browser, base_url, init_scripts=(FAKE_CLOCK,), log=None):
-    """Open /sailing/ with the fake clock installed; console errors, warnings and page errors go to log."""
+    """Open the game (the site root) with the fake clock installed; console errors, warnings and page errors go to log."""
     page = browser.new_page(viewport={"width": 1000, "height": 700})
     page.route("**/fonts.g*/**", lambda r: r.abort())
     for s in init_scripts:
@@ -55,7 +55,7 @@ def open_game(browser, base_url, init_scripts=(FAKE_CLOCK,), log=None):
     if log is not None:
         page.on("console", lambda m: m.type in ("error", "warning") and "net::ERR_FAILED" not in m.text and log.append(f"{m.type}: {m.text}"))
         page.on("pageerror", lambda e: log.append(f"pageerror: {e}"))
-    page.goto(f"{base_url}/sailing/")
+    page.goto(f"{base_url}/")
     wait_ready(page)
     return page
 

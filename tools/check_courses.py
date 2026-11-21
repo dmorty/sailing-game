@@ -1,11 +1,11 @@
-"""Sanity-check sailing/rsys-courses.js against the chart in sailing/harbour-data.js.
+"""Sanity-check rsys-courses.js against the chart in harbour-data.js.
 
 For every division and course: the mark line parses to known marks with one * mark,
 every mark and start/finish position is in open water, and the straight-line course
 length is compared with the distance printed on the course sheet.
 
 Run from anywhere (standard library only):
-    python3 sailing/tools/check_courses.py
+    python3 tools/check_courses.py
 """
 import json
 import math

@@ -6,7 +6,7 @@ the finish line. It then checks the finish card, best-time storage, the setup su
 starts another race. Fails on any console error or warning.
 
 Run from the repo root:
-    uv run --with playwright sailing/tools/race_test.py
+    uv run --with playwright tools/race_test.py
 """
 import math
 import pathlib
@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 
 from browser_harness import FAKE_CLOCK, launch, open_game, serve, stepper, wait_ready
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
+REPO = pathlib.Path(__file__).resolve().parents[1]
 RACES = [("2", "SW"), ("3", "RC")]  # division, wind ("RC" = race committee's pick)
 
 # put the boat 25 units before point c, sailing along unit vector d through it
