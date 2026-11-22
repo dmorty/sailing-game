@@ -12,6 +12,32 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #5 Generalise check_courses.py to validate any course file
+
+- **Branch:** `5-check-any-course`
+- **What changed:**
+  - **`tools/check_courses.py` checks any location.** With no arguments it checks `courses/index.json` and every location listed there; it also accepts course files as arguments.
+  - It now checks:
+    - **Index:** every listed location has a course file and a name, no id is listed twice, and every `courses/*/course.json` is listed. An unlisted one can't be picked in the game.
+    - **Fields:** every field the game needs is present and sensible: club, title, card text, boundary, positions as GPS numbers, the wind default and strength, wind bearings, `altFinish`, labels and `osmWater`.
+    - **Courses:** every start, finish and mark is known, every rounding is `port` or `starboard`, and each course has exactly one shortened-course mark.
+    - **Winds:** every wind picks a course that exists in every division.
+    - **Chart:** it has the projection and land, and was built from the course file's boundary. Otherwise the problem says to rebuild it.
+    - **Positions:** as before, every mark, start and finish is on the chart and in open water.
+    - **Lengths:** they're compared with published lengths only where a course has `nm`. A course with none is just reported.
+  - **Reporting:**
+    - Each problem names where it is, for example `PROBLEM divisions.1[0].marks[0]: unknown mark 'ZZ'`.
+    - A course with bad references is left out of the length check but doesn't stop the other checks, so a mark on land is still reported alongside it.
+    - Only structural breakage stops the chart checks: a bad boundary, positions or chart.
+  - **New `tools/check_courses_test.py`** breaks a copy of the RSYS course file in 20 ways, one at a time, such as an unknown mark, a bad rounding, a mark on land, a stale chart or invalid JSON. It checks each is reported with the right location and message, along with three index problems and a combined case. The unbroken copy must pass.
+  - `CLAUDE.md`, `courses/README.md` and the ingestion playbook (`inbox/README.md`) describe the new checks.
+- **Testing:**
+  - On RSYS: 0 problems, with the same positions and lengths as before.
+  - `check_courses_test.py`: all 26 checks pass. I confirmed it fails when an expected message is wrong.
+  - There are no game changes.
+- **To review:** the length tolerance is still ±20% for every location. RSYS's published distances are rough, and another club's might call for a tighter limit.
+- **Next steps:** #11, a browser check that any location loads and every course builds. Then #12, sailability, which builds on this checker.
+
 ## 2026-11-22 — #10 Ingestion: inbox and processed folders, and the playbook
 
 - **Branch:** `10-inbox-playbook`

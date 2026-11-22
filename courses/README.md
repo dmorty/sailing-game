@@ -26,7 +26,7 @@ The player's pick is saved in `localStorage` (`location`), and switching reloads
 
 Each entry in a course's `marks` is `{ "mark": "KP", "rounding": "port" }`: `rounding` is `port` or `starboard`, the side the mark is left on. Exactly one mark per course has `"shortened": true`, the mark the course finishes after when it's shortened (flag S).
 
-Check a course file against its chart with `python3 tools/check_courses.py`.
+Check every location (and `index.json`) with `python3 tools/check_courses.py`, or one location with `python3 tools/check_courses.py courses/<id>/course.json`.
 
 ## `chart.json`
 
