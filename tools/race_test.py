@@ -217,23 +217,6 @@ def main():
         check(trip["state"] == "finish" and trip["off"] < 1 and not trip["onLand"],
               f"it reaches the finish in {trip['secs']:.0f} s without crossing land, and anchors at the pin's end")
 
-        # every course has a water route for the start boat from the start to the finish
-        routes = page.evaluate("""async () => {
-          const { RS, buildCourse } = await import('./js/course.js'); const { findPath } = await import('./js/committee.js');
-          const { isLand } = await import('./js/chart.js');
-          const bad = []; let n = 0;
-          for (const division of Object.keys(RS.divisions)) for (const w of RS.winds)
-            for (const shortened of [false, true]) for (const altFinish of [false, true]) {
-              const c = buildCourse({ division, wind: w.name, shortened, altFinish }), path = findPath(c.startBoat, c.finishBoat); n++;
-              let land = !path;
-              for (let i = 1; path && i < path.length; i++) {
-                const p = path[i - 1], q = path[i], k = Math.ceil(Math.hypot(q.x - p.x, q.y - p.y) / 5);
-                for (let j = 0; j <= k; j++) if (isLand(p.x + (q.x - p.x) * j / k, p.y + (q.y - p.y) * j / k)) land = true;
-              }
-              if (land) bad.push(c.key);
-            }
-          return { n, bad }; }""")
-        check(not routes["bad"], f"water route from start to finish on all {routes['n']} courses {routes['bad'] or ''}")
         check_locations(page, step)
         check(not log, f"no console errors or warnings {log or ''}")
         browser.close()

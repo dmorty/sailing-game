@@ -12,6 +12,29 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #11 Ingestion: browser check that any location loads and every course builds
+
+- **Branch:** `11-location-load-check`
+- **What changed:**
+  - **New `tools/location_test.py [ID ...]`**, for every location in `courses/index.json` by default. For each location it opens the game and checks:
+    - the game loads that location, with no console errors or warnings;
+    - a race starts;
+    - every division × wind × shortened × alternative-finish course builds, with no error and none of the game's warnings: a mark hard against the shore, a squeezed line, or no room for the start boat;
+    - the boat's spawn is in water;
+    - the start boat has a water route from the start to the finish.
+    Each problem names the course key, such as `2-S: Unknown mark "ZZ"`.
+  - **`--self-test`** serves broken copies of RSYS through Playwright routes: an unknown mark in one course, a mark on land, a missing chart file, and an id that isn't in the index. It checks each one fails with a clear message.
+  - **`race_test.py`:** its RSYS-only water-route sweep moved into the new test.
+  - **Fixed a harness bug from #1.** The "wait until the course is built" step in `browser_harness.py` didn't wait, because Playwright's `wait_for_function` treats a returned Promise as true straight away. I confirmed this with a Promise resolving to `false`. Tests only passed because of the 300 ms pause after it. The new `wait_for_course()` polls with `page.evaluate`, which does await, and both tests use it.
+  - `CLAUDE.md` and the ingestion playbook list the new test.
+- **Testing:**
+  - `location_test.py`: RSYS passes, with all 120 courses built.
+  - `--self-test`: all 4 broken cases are reported.
+  - `race_test.py` passes, `compare_versions.py` shows 0 of 156 snapshots differ, and there are no game changes.
+- **To review:**
+  - The number of skipped wrong-side checks in `race_test.py` varies between 2 and 4 from run to run. The race committee's wind pick isn't seeded in that test, so the course it races changes. This was already the case. Seeding it would make runs repeatable.
+- **Next steps:** #12, the sailability check: every leg has a water route and room to round each mark.
+
 ## 2026-11-22 — #5 Generalise check_courses.py to validate any course file
 
 - **Branch:** `5-check-any-course`
