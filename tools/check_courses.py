@@ -8,7 +8,9 @@ For each location:
   shortened-course mark; every wind picks a course that exists in every division;
 - the chart exists and matches the course file's boundary;
 - every mark, start and finish is on the chart and in open water;
-- where a course has a published length (nm), the charted straight-line length is close to it.
+- where a course has a published length (nm), the charted straight-line length is close to it;
+- every course is sailable, in full and shortened and with any alternative finish: each leg has a water route wide
+  enough to sail, and each mark has room to round it on its required side (the game's rounding gate).
 
 Each problem names where it is, such as divisions.2[6].marks[3]. Exits 1 if there are any.
 
@@ -23,6 +25,13 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 COURSES = ROOT / "courses"
 TOLERANCE = 0.20  # allowed difference from a published length; the RSYS sheet distances are approximate
+
+# Sailability, in world units (see js/boat.js and js/course.js)
+SAIL_CELL = 5     # grid cell for the water map
+SAIL_CLEAR = 15   # sailable water is at least this far from land: room for the 22-unit hull to turn and tack
+SAIL_EDGE = 40    # the game keeps the boat this far inside the chart's edge
+SAIL_REACH = 60   # a mark, start or finish may be this close to the shore: it joins sailable water within this distance
+GATE, MIN_GATE = 160, 30  # a mark's rounding gate, and the least water along it for the boat to get round (as in the game)
 
 
 class Report:
@@ -264,6 +273,177 @@ def check_positions(c, chart, rep):
                 print(f"  Div {div} course {n}: {nm:5.1f} nm (none published)  {line}")
 
 
+class Water:
+    """The chart's land on a grid, and the connected areas of water wide enough to sail."""
+
+    def __init__(self, chart):
+        self.w, self.h = math.ceil(chart["W"] / SAIL_CELL), math.ceil(chart["H"] / SAIL_CELL)
+        w, h = self.w, self.h
+        # land, by even-odd scanline fill of every ring at each row's cell centres
+        land = bytearray(w * h)
+        edges = []
+        for r in chart["land"]:
+            n = len(r) // 2
+            edges += [(r[2 * i], r[2 * i + 1], r[2 * ((i + 1) % n)], r[2 * ((i + 1) % n) + 1]) for i in range(n)]
+        for j in range(h):
+            y = (j + 0.5) * SAIL_CELL
+            xs = sorted(x1 + (y - y1) * (x2 - x1) / (y2 - y1) for x1, y1, x2, y2 in edges if (y1 > y) != (y2 > y))
+            for a, b in zip(xs[::2], xs[1::2]):
+                for i in range(max(0, math.ceil(a / SAIL_CELL - 0.5)), min(w, math.floor(b / SAIL_CELL - 0.5) + 1)):
+                    land[j * w + i] = 1
+        self.land = land
+        # sailable: water at least SAIL_CLEAR from land and SAIL_EDGE inside the chart
+        k, e = math.ceil(SAIL_CLEAR / SAIL_CELL), math.ceil(SAIL_EDGE / SAIL_CELL)
+        disk = [(di, dj) for dj in range(-k, k + 1) for di in range(-k, k + 1) if di * di + dj * dj <= k * k]
+        clear = bytearray(1 if not land[c] else 0 for c in range(w * h))
+        for j in range(h):
+            for i in range(w):
+                if land[j * w + i] and any(0 <= i + di < w and 0 <= j + dj < h and not land[(j + dj) * w + i + di]
+                                           for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    for di, dj in disk:  # shore cell: no sailing within SAIL_CLEAR of it
+                        if 0 <= i + di < w and 0 <= j + dj < h:
+                            clear[(j + dj) * w + i + di] = 0
+        for j in range(h):
+            for i in range(w):
+                if i < e or j < e or i >= w - e or j >= h - e:
+                    clear[j * w + i] = 0
+        # connected areas of sailable water (8-connected)
+        self.area = [0] * (w * h)
+        label = 0
+        for start in range(w * h):
+            if clear[start] and not self.area[start]:
+                label += 1
+                self.area[start] = label
+                stack = [start]
+                while stack:
+                    c = stack.pop()
+                    ci, cj = c % w, c // w
+                    for dj in (-1, 0, 1):
+                        for di in (-1, 0, 1):
+                            ni, nj = ci + di, cj + dj
+                            if 0 <= ni < w and 0 <= nj < h:
+                                n = nj * w + ni
+                                if clear[n] and not self.area[n]:
+                                    self.area[n] = label
+                                    stack.append(n)
+        self._near = {}
+
+    def is_land(self, x, y):
+        i, j = math.floor(x / SAIL_CELL), math.floor(y / SAIL_CELL)
+        return not (0 <= i < self.w and 0 <= j < self.h) or self.land[j * self.w + i] == 1
+
+    def water_line(self, p, q):
+        n = max(1, math.ceil(math.dist(p, q) / (SAIL_CELL / 2)))
+        return not any(self.is_land(p[0] + (q[0] - p[0]) * k / n, p[1] + (q[1] - p[1]) * k / n) for k in range(n + 1))
+
+    def areas_near(self, p):
+        """The sailable areas a boat can reach from point p in a straight line of water, within SAIL_REACH."""
+        key = (round(p[0], 1), round(p[1], 1))
+        if key not in self._near:
+            found, r = set(), math.ceil(SAIL_REACH / SAIL_CELL)
+            ci, cj = math.floor(p[0] / SAIL_CELL), math.floor(p[1] / SAIL_CELL)
+            cells = sorted(((di * di + dj * dj, ci + di, cj + dj) for dj in range(-r, r + 1) for di in range(-r, r + 1)
+                            if di * di + dj * dj <= r * r))
+            for _, i, j in cells:
+                if 0 <= i < self.w and 0 <= j < self.h:
+                    a = self.area[j * self.w + i]
+                    if a and a not in found and self.water_line(p, ((i + 0.5) * SAIL_CELL, (j + 0.5) * SAIL_CELL)):
+                        found.add(a)
+            self._near[key] = found
+        return self._near[key]
+
+    def reach(self, p, d, length):
+        """How far (up to length) from p along unit vector d before land, in steps of 5 as the game measures it."""
+        r = 0
+        while r < length and not self.is_land(p[0] + d[0] * (r + 5), p[1] + d[1] * (r + 5)):
+            r += 5
+        return r
+
+
+def unit(x, y):
+    n = math.hypot(x, y) or 1
+    return x / n, y / n
+
+
+def gate_dir(a, m, b, port):
+    """The direction of mark m's rounding gate when sailing from a to m to b, as js/course.js lays it out: along the
+    outside of the turn, or abeam on the boat's side when the course runs straight on."""
+    uin, uout = unit(m[0] - a[0], m[1] - a[1]), unit(b[0] - m[0], b[1] - m[1])
+    g = (uin[0] - uout[0], uin[1] - uout[1])
+    if math.hypot(*g) < 0.2:
+        g = (-uin[1], uin[0]) if port else (uin[1], -uin[0])
+    return unit(*g)
+
+
+def check_sailable(c, chart, rep):
+    """Every leg of every course variant has a water route; every mark has room to round on its required side."""
+    water = Water(chart)
+    m_per_unit = chart["mPerUnit"]
+
+    def xy(p):
+        return ((p["lon"] - chart["lon0"]) / chart["lonPerUnit"], (chart["latTop"] - p["lat"]) / chart["latPerUnit"])
+
+    alt = c.get("altFinish")
+    if not (isinstance(alt, dict) and alt.get("finish") in c["finishes"]):
+        alt = None  # missing, or already reported as a problem
+    blocked, tight, cut_off = {}, {}, {}
+    legs, roundings = set(), set()
+    for div, courses in c["divisions"].items():
+        for n, crs in enumerate(courses if isinstance(courses, list) else []):
+            if not course_ok(c, crs):
+                continue
+            for shortened in (False, True):
+                for alt_finish in ((False, True) if alt else (False,)):
+                    ms = crs["marks"]
+                    if shortened:
+                        cut = next((i for i, m in enumerate(ms) if m.get("shortened")), None)
+                        if cut is None:
+                            continue
+                        ms = ms[:cut + 1]
+                    finish = alt["finish"] if alt_finish else crs["finish"]
+                    name = (f"divisions.{div}[{n}]", " ".join(t for t in ("shortened" if shortened else "",
+                                                                          f"flag {alt['flag']}" if alt_finish else "") if t))
+                    stops = ([("start " + crs["start"], xy(c["starts"][crs["start"]]))]
+                             + [(m["mark"], xy(c["marks"][m["mark"]])) for m in ms]
+                             + [("finish " + finish, xy(c["finishes"][finish]))])
+                    for label, p in stops:
+                        if not water.areas_near(p):
+                            cut_off.setdefault(label, []).append(name)
+                    for (la, pa), (lb, pb) in zip(stops, stops[1:]):
+                        legs.add((la, lb))
+                        if water.areas_near(pa) and water.areas_near(pb) and not water.areas_near(pa) & water.areas_near(pb):
+                            blocked.setdefault((la, lb), []).append(name)
+                    for i, m in enumerate(ms):
+                        (la, pa), (lm, pm), (lb, pb) = stops[i], stops[i + 1], stops[i + 2]
+                        port = m["rounding"] == "port"
+                        roundings.add((la, lm, lb, port))
+                        room = water.reach(pm, gate_dir(pa, pm, pb, port), GATE)
+                        if room < MIN_GATE:
+                            t = tight.setdefault((lm, port), {"room": room, "names": []})
+                            t["room"] = min(t["room"], room)
+                            t["names"].append(name)
+
+    def courses_list(names):
+        """Each course once; a variant is named only when the full course doesn't have the problem."""
+        tags = {}
+        for base, tag in names:
+            tags.setdefault(base, set()).add(tag)
+        out = [base if "" in t else f"{base} ({' / '.join(sorted(t))})" for base, t in tags.items()]
+        return ("course " if len(out) == 1 else "courses ") + ", ".join(out[:6]) + (f" and {len(out) - 6} more" if len(out) > 6 else "")
+
+    print(" Sailable (every leg has a water route; every mark has room to round on its side):")
+    for label, names in cut_off.items():
+        rep.problem(label, f"has no sailable water within {SAIL_REACH * m_per_unit:.0f} m: move it into open water ({courses_list(names)})")
+    for (la, lb), names in blocked.items():
+        rep.problem(f"leg {la} → {lb}", f"has no water route wide enough to sail ({courses_list(names)})")
+    for (lm, port), t in tight.items():
+        rep.problem(f"mark {lm}", f"no room to leave it to {'port' if port else 'starboard'}: as little as "
+                                  f"{t['room'] * m_per_unit:.0f} m of water on the outside of the turn, needs "
+                                  f"{MIN_GATE * m_per_unit:.0f} m ({courses_list(t['names'])})")
+    if not (cut_off or blocked or tight):
+        print(f"  all {len(legs)} different legs and {len(roundings)} different roundings are sailable")
+
+
 def check_location(path, rep):
     name = path.parent.name
     print(f"\n{name} ({path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}):")
@@ -280,6 +460,7 @@ def check_location(path, rep):
     if chart is None or not check_chart(c, chart, rep):
         return
     check_positions(c, chart, rep)
+    check_sailable(c, chart, rep)
 
 
 def main(argv):

@@ -17,7 +17,7 @@ A simple, satisfying 2D sailing game playable in the browser. The player steers 
   - `uv run --with playwright tools/location_test.py [ID ...]` loads every location (or those given) and builds every course: no console errors or warnings, the spawn is in water, and the start boat has a water route. `--self-test` checks that broken locations fail clearly.
   - `uv run --with playwright tools/compare_versions.py [REF]` plays the same session against a git ref (default `master`) and the working tree, and reports any difference. Use it for refactors that must not change behaviour.
 - Course data lives in `courses/<location>/`: `course.json` (club, marks, courses, wind) and `chart.json` (land from OpenStreetMap). The format is described in `courses/README.md`. Rebuild a chart from its course file with `uv run --with shapely --with requests tools/build_harbour.py courses/<location>/course.json`.
-- `python3 tools/check_courses.py` checks every location's course file against its chart (or the course files given as arguments). `python3 tools/check_courses_test.py` checks that it catches broken course files.
+- `python3 tools/check_courses.py` checks every location's course file against its chart (or the course files given as arguments), including that every course is sailable. `python3 tools/check_courses_test.py` checks that it catches broken course files.
 - Works with keyboard on desktop; touch controls are a later goal.
 
 ## Tasks: GitHub Issues

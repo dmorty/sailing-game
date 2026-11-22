@@ -62,11 +62,12 @@ Look at the preview. The water should be where the racing is, with no missing ha
   - every course uses known marks, rounded to port or starboard, with one shortened mark;
   - every wind picks a course that exists;
   - the chart matches the boundary;
-  - charted lengths are near the published ones.
+  - charted lengths are near the published ones;
+  - every course, in full and shortened and with any alternative finish, is sailable: each leg has a water route wide enough to sail, and each mark has room to round on its required side.
   Each problem names where it is, such as `divisions.2[6].marks[3]`. After the location is added to `courses/index.json` (next step), run it with no arguments, which also checks the index.
   - Move any mark that lands on the chart's land into the nearest open water, with `"approx": true` and a note.
 - Add the location to `courses/index.json` (`id`, `name`, `area`). RSYS stays first, because it's the default.
-- Run `uv run --with playwright tools/location_test.py <id>`. It loads the location in the game and builds every course, which catches marks hard against the shore, squeezed start and finish lines, a spawn on land and no water route for the start boat. A sailability check (#12) will add a check that every leg can be sailed.
+- Run `uv run --with playwright tools/location_test.py <id>`. It loads the location in the game and builds every course, which catches marks hard against the shore, squeezed start and finish lines, a spawn on land and no water route for the start boat.
 - Serve the site (`python3 -m http.server`), pick the new club on the start card and look at a few courses. The tests can't judge whether a course looks right.
 - Run `python3 tools/check_courses.py` (all locations and the index) and `uv run --with playwright tools/race_test.py`, to make sure RSYS is unaffected.
 

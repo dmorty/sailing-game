@@ -12,6 +12,32 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #12 Ingestion: check that every course is sailable
+
+- **Branch:** `12-sailable-courses`
+- **What changed:**
+  - `tools/check_courses.py` now checks that every course is sailable. That covers every variant the game can build: full and shortened, with and without the alternative finish.
+    - **Water map:** the chart's land is drawn onto a 5-unit grid by even-odd scanline fill. Sailable water is any water at least 15 units (39 m) from land, room for the 22-unit hull to turn and tack, and at least 40 units from the chart edge, as `js/boat.js` keeps the boat. Connected areas of sailable water are labelled.
+    - **Legs:** a mark, start or finish joins every sailable area it reaches within 60 units (157 m) over open water. A leg is sailable when its two ends share an area.
+    - **Roundings:** each mark needs at least 30 units (78 m) of water along its rounding gate. That's the game's own rule from `js/course.js`, with the gate direction copied as `gate_dir()`.
+  - **Reporting:** problems are grouped into one line per blocked leg, one per mark and side (with the least water found), and one per point cut off from sailable water. Each line names the courses affected, adding "shortened" or "flag O" only when the problem appears just in that variant. For example: `PROBLEM mark MW: no room to leave it to starboard: as little as 26 m of water on the outside of the turn, needs 78 m (courses divisions.1[0], ...)`.
+  - **Fixed:** an invalid `altFinish` no longer crashes the later checks.
+  - **`check_courses_test.py`** has three new cases that add land to a copy of the chart:
+    - a ring of land fencing off mark BB (blocked legs);
+    - BB walled into a pond with no sailable water;
+    - a rock on the outside of MW's turn (no room to round).
+  - `CLAUDE.md` and the ingestion playbook describe the check.
+- **Testing:**
+  - RSYS: all 86 different legs and 127 different roundings are sailable, with 0 problems. The tightest rounding is TB, with 55 units of water against the 30 needed.
+  - The land grid agrees with the exact polygon test at 3,000 random cell centres.
+  - `check_courses_test.py`: all checks pass. The whole check takes about 0.6 s.
+  - There are no game changes.
+- **To review:**
+  - **Connectivity, not a sailed route:** this checks that a water route exists, not that the boat can sail it to windward in the time a player would accept. A long beat up a narrow channel passes.
+  - **Tuning:** the 15-unit clearance and 60-unit reach are judgement calls. A mark tucked into a narrow bay more than 157 m from 78 m-wide water would fail.
+  - **#4's split is now complete** except #13, which waits on the Greenwich Flying Squadron source document.
+- **Next steps:** #13, ingesting Greenwich Flying Squadron, once its source document is in `inbox/`. There are no other `ready` issues.
+
 ## 2026-11-22 — #11 Ingestion: browser check that any location loads and every course builds
 
 - **Branch:** `11-location-load-check`

@@ -105,6 +105,34 @@ def main():
               and "Div 1 course 0: not measured" in out and "Div 1 course 1:" in out,
               "a course with an unknown mark doesn't stop the position and length checks", out)
 
+        # sailability: change the chart copy around a mark (the course file itself stays valid)
+        chart = json.loads((RSYS / "chart.json").read_text())
+
+        def xy(code):
+            p = rsys["marks"][code]
+            return ((p["lon"] - chart["lon0"]) / chart["lonPerUnit"], (chart["latTop"] - p["lat"]) / chart["latPerUnit"])
+
+        def square(cx, cy, half):
+            return [cx - half, cy - half, cx + half, cy - half, cx + half, cy + half, cx - half, cy + half]
+
+        bx, by = xy("BB")
+        # MW on division 1 course 0 (start Clarke Island → MW → ME), left to starboard: a rock just outside the turn
+        start = rsys["starts"]["Clarke Island"]
+        start = ((start["lon"] - chart["lon0"]) / chart["lonPerUnit"], (chart["latTop"] - start["lat"]) / chart["latPerUnit"])
+        g = check_courses.gate_dir(start, xy("MW"), xy("ME"), False)
+        rock = square(xy("MW")[0] + g[0] * 20, xy("MW")[1] + g[1] * 20, 6)
+        chart_cases = [
+            ("a mark fenced off by land", [square(bx, by, 50), square(bx, by, 30)], "→ BB: has no water route wide enough to sail"),
+            ("a mark cut off from sailable water", [square(bx, by, 50), square(bx, by, 8)], "PROBLEM BB: has no sailable water within"),
+            ("no room to round a mark", [rock], "PROBLEM mark MW: no room to leave it to starboard"),
+        ]
+        f.write_text(json.dumps(rsys))
+        for desc, rings, expect in chart_cases:
+            (loc / "chart.json").write_text(json.dumps({**chart, "land": chart["land"] + rings}))
+            code, out = run([str(f)])
+            check(code == 1 and expect in out and "is on land" not in out, f"{desc}: reported as \"{expect}\"", out)
+        shutil.copy(RSYS / "chart.json", loc / "chart.json")
+
         f.write_text('{"club": "Broken",')
         code, out = run([str(f)])
         check(code == 1 and "not valid JSON" in out, "invalid JSON is reported", out)
