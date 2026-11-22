@@ -9,6 +9,7 @@ import glob
 import http.server
 import os
 import threading
+import time
 
 from playwright.sync_api import Error
 
@@ -62,9 +63,19 @@ def open_game(browser, base_url, init_scripts=(FAKE_CLOCK,), log=None):
 
 def wait_ready(page):
     page.wait_for_function('typeof window.__step === "function"')
-    # the game loads its course file before building the first course; wait for that where the game has one
-    page.wait_for_function("""import('./js/game.js').then(({ game }) => !!game.course)""")
+    wait_for_course(page)
     page.wait_for_timeout(300)  # let the game scripts run their first frame request
+
+
+def wait_for_course(page, timeout=30):
+    """Wait until the game has loaded its course file and built the first course; returns False on timeout.
+    (page.wait_for_function can't do this: it treats a returned Promise as true without waiting for it.)"""
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if page.evaluate("import('./js/game.js').then(({ game }) => !!game.course)"):
+            return True
+        page.wait_for_timeout(50)
+    return False
 
 
 def stepper(page):
