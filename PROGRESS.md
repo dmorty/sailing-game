@@ -12,6 +12,37 @@ One entry per issue or task, newest first. Tasks are GitHub Issues; see the rule
 - **Questions:** (if blocked or unsure; also comment them on the issue and label it needs-input)
 -->
 
+## 2026-11-22 — #10 Ingestion: inbox and processed folders, and the playbook
+
+- **Branch:** `10-inbox-playbook`
+- **Split of #4:** #4 (the ingestion workflow) was too big for one run and depends on #5. It's split into:
+  - #10: this task;
+  - #11: a browser check that any location loads and every course builds;
+  - #12: a sailability check, which depends on #5;
+  - #13: ingesting Greenwich Flying Squadron. That one is labelled `needs-input`, because it needs the source document in `inbox/`.
+  - #4 stays open to track them. Its `ready` label was removed so it isn't picked up again.
+- **What changed:**
+  - **New `inbox/README.md`:** what goes in the inbox, plus the step-by-step ingestion playbook:
+    - choosing the id;
+    - writing each `course.json` field from the source;
+    - choosing the boundary and finding the `osmWater` relations, with an Overpass query;
+    - building and previewing the chart;
+    - validating;
+    - registering the location in `courses/index.json`;
+    - recording uncertain values in both `course.json` and `PROGRESS.md`;
+    - moving the source to `inbox/processed/`.
+  - **New `.gitignore`:** it ignores everything in `inbox/` except the README, so source documents (including `processed/`) stay out of this public repo. This follows the RSYS sailing instructions, which were kept out of the repo when it moved.
+  - The ingestion section of `CLAUDE.md` points to the playbook.
+- **Testing:**
+  - A dummy PDF in `inbox/` and one in `inbox/processed/` were both ignored by git.
+  - The playbook's square-boundary formula reproduces the RSYS `east` exactly (151.301641).
+  - There are no game changes.
+- **To review:**
+  - **Scale:** the playbook says to keep each location's north-south span near RSYS's 9.4 km and the chart square. Boat speeds, gates and line lengths are in world units, and non-square charts haven't been played. A much larger or smaller club area would need the scale handled in code.
+  - **Inbox not in git:** because the inbox is ignored, ingestion has to run on the machine where the document was dropped. A cloud agent or another checkout won't see it.
+  - **Invented values:** where a source lacks a wind-to-course table or a shortening point, the playbook lets the agent invent one and flag it. You may prefer those to be questions instead.
+- **Next steps:** #5, generalising `check_courses.py`, which #12 depends on. #11 can be done any time.
+
 ## 2026-11-22 — #3 Add a club/location picker to the start screen
 
 - **Branch:** `3-location-picker`
